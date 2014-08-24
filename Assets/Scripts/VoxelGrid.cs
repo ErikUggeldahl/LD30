@@ -15,43 +15,6 @@ public enum VoxelType
 	White
 }
 
-public struct GridCoord
-{
-	public int x;
-	public int y;
-	public int z;
-
-	const float VOXEL_DIM_OFF = 0.5f;
-	const int WIDTH_OFF = VoxelGrid.WIDTH / 2;
-	const int HEIGHT_OFF = VoxelGrid.HEIGHT / 2;
-	const int DEPTH_OFF = VoxelGrid.DEPTH / 2;
-
-	public Vector3 WorldPosition
-	{
-		get
-		{
-			float worldX = x - WIDTH_OFF + VOXEL_DIM_OFF;
-			float worldY = y - HEIGHT_OFF + VOXEL_DIM_OFF;
-			float worldZ = z;
-			return new Vector3(worldX, worldY, worldZ);
-		}
-	}
-
-	public GridCoord(int x, int y, int z)
-	{
-		this.x = x;
-		this.y = y;
-		this.z = z;
-	}
-
-	public GridCoord(Vector3 world)
-	{
-		x = Mathf.Clamp(Mathf.FloorToInt(world.x) + WIDTH_OFF, 0, VoxelGrid.WIDTH - 1);
-		y = Mathf.Clamp(Mathf.FloorToInt(world.y) + HEIGHT_OFF, 0, VoxelGrid.HEIGHT - 1);
-		z = Mathf.Clamp(Mathf.FloorToInt(world.z), 0, VoxelGrid.DEPTH - 1);
-	}
-}
-
 public class VoxelGrid : MonoBehaviour
 {
 	public const int WIDTH = 19;
@@ -68,9 +31,9 @@ public class VoxelGrid : MonoBehaviour
 
 			while (true)
 			{
-				int x = Random.Range(0, WIDTH - 1);
-				int y = Random.Range(0, HEIGHT - 1);
-				int z = Random.Range(0, DEPTH - 1);
+				int x = Random.Range(0, WIDTH);
+				int y = Random.Range(0, HEIGHT);
+				int z = Random.Range(0, DEPTH);
 
 				if (grid[x, y, z] == VoxelType.Empty)
 					return new GridCoord(x, y, z); 
@@ -106,6 +69,39 @@ public class VoxelGrid : MonoBehaviour
 		CreateVoxel(coord, type);
 	}
 
+	public void Move(GridCoord start, GridCoord end)
+	{
+		if (start.Equals(end))
+			return;
+
+		var occupying = gridGOs[end.x, end.y, end.z];
+		if (occupying != null)
+			Destroy(occupying);
+
+		gridGOs[start.x, start.y, start.z].transform.position = end.WorldPosition;
+		gridGOs[end.x, end.y, end.z] = gridGOs[start.x, start.y, start.z];
+		gridGOs[start.x, start.y, start.z] = null;
+
+		grid[end.x, end.y, end.z] = grid[start.x, start.y, start.z];
+		grid[start.x, start.y, start.z] = VoxelType.Empty;
+	}
+
+	public GridCoord RandomAdjacent(GridCoord coord)
+	{
+		int dirX = 0;
+		int dirY = 0;
+		int dirZ = 0;
+
+		do
+		{
+			dirX = Random.Range(-1, 2);
+			dirY = Random.Range(-1, 2);
+			dirZ = Random.Range(-1, 2);
+		} while (dirX == 0 && dirY == 0 && dirZ == 0);
+
+		return new GridCoord(coord.x + dirX, coord.y + dirY, coord.z + dirZ);
+	}
+
 	void AdjustFillCount(VoxelType from, VoxelType to)
 	{
 		if (from != to)
@@ -128,6 +124,12 @@ public class VoxelGrid : MonoBehaviour
 		}
 
 		voxel.GetComponent<VoxelMaterialAdjuster>().SetType(type);
+
+		if (type == VoxelType.Black)
+		{
+			var black = voxel.AddComponent<BlackVoxel>();
+			black.Initialize(this, coord);
+		}
 	}
 
 	void InitializeWithColors()
@@ -135,5 +137,7 @@ public class VoxelGrid : MonoBehaviour
 		Set(RandomEmpty, VoxelType.Red);
 		Set(RandomEmpty, VoxelType.Green);
 		Set(RandomEmpty, VoxelType.Blue);
+
+		Set(RandomEmpty, VoxelType.Black);
 	}
 }
