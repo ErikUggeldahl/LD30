@@ -25,6 +25,7 @@ public class VoxelMaterialAdjuster : MonoBehaviour
 			case VoxelType.Yellow: return Color.yellow;
 			case VoxelType.Magenta: return Color.magenta;
 			case VoxelType.Black: return Color.black;
+			case VoxelType.Grey: return Color.grey;
 			case VoxelType.White: return Color.white;
 		}
 

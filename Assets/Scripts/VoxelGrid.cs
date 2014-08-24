@@ -11,6 +11,7 @@ public enum VoxelType
 	Yellow,
 	Magenta,
 	Black,
+	Grey,
 	White
 }
 
@@ -20,6 +21,7 @@ public struct GridCoord
 	public int y;
 	public int z;
 
+	const float VOXEL_DIM_OFF = 0.5f;
 	const int WIDTH_OFF = VoxelGrid.WIDTH / 2;
 	const int HEIGHT_OFF = VoxelGrid.HEIGHT / 2;
 	const int DEPTH_OFF = VoxelGrid.DEPTH / 2;
@@ -28,8 +30,8 @@ public struct GridCoord
 	{
 		get
 		{
-			float worldX = x - WIDTH_OFF;
-			float worldY = y - HEIGHT_OFF;
+			float worldX = x - WIDTH_OFF + VOXEL_DIM_OFF;
+			float worldY = y - HEIGHT_OFF + VOXEL_DIM_OFF;
 			float worldZ = z;
 			return new Vector3(worldX, worldY, worldZ);
 		}

@@ -25,6 +25,8 @@ public class VoxelPicker : MonoBehaviour
 	{
 		var point = camera.ScreenPointToRay(Input.mousePosition).GetPoint(distanceFromOrigin);
 		var coord = new GridCoord(point);
-		grid.Set(coord, VoxelType.White);
+
+		if (grid.Get(coord) == VoxelType.Empty)
+			grid.Set(coord, VoxelType.White);
 	}
 }
